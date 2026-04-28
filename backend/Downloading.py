@@ -1,11 +1,13 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
+from typosquatting_detection import check_website, load_trusted_domains
 
 app = Flask(__name__)
 CORS(app)  # Required so the Chrome extension (different origin) can call this
 
 API_KEY = "e9b917b846efe746575400bc55c3b34524011d605a61f9161470fcf960611ea0"
+trusted_domains = load_trusted_domains("top_5_websites.txt")
 
 def check_url(url):
     """Submit a URL to VirusTotal and return a structured safety result."""
@@ -58,8 +60,16 @@ def check():
     if not url:
         return jsonify({"status": "error", "message": "Missing ?url= parameter"}), 400
 
-    result = check_url(url)
-    return jsonify(result)
+    vt_result = check_url(url)
+
+    # Run typosquatting detection
+    typo_result = check_website(url, trusted_domains)
+
+    # If typosquatting detects NOT TRUSTED → override status
+    if "NOT TRUSTED" in typo_result:
+        vt_result["status"] = "dangerous"
+
+    return jsonify(vt_result)
 
 
 if __name__ == "__main__":
