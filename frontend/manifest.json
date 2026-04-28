@@ -2,13 +2,28 @@
   "manifest_version": 3,
   "name": "Website Safety Checker",
   "version": "1.0.0",
-  "description": "Instantly check if the website you're visiting is safe",
+  "description": "Instantly check if the website you're visiting is safe using VirusTotal",
+
   "permissions": [
     "activeTab",
     "tabs"
   ],
+
+  "host_permissions": [
+    "http://localhost:5000/*",
+    "<all_urls>"
+  ],
+
   "action": {
     "default_popup": "popup.html",
     "default_title": "Check website safety"
-  }
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ]
 }
