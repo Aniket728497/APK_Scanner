@@ -64,6 +64,15 @@ function displayStatus(status, domain, stats = {}) {
             `${stats.malicious ?? "Multiple"} engine(s) flagged as malicious`;
         if (items[1]) items[1].textContent = "Do not enter credentials or personal data";
         card.classList.remove("hidden");
+        const duplicateBox = document.getElementById("duplicateWarning");
+        const duplicateText = document.getElementById("duplicateText");
+
+        if (stats.duplicate_of) {
+            duplicateText.textContent = `This website is a duplicate of ${stats.duplicate_of}`;
+            duplicateBox.classList.remove("hidden");
+        } else {
+            duplicateBox.classList.add("hidden");
+        }
 
     } else {
         // Fallback: treat errors as warning so the user isn't blocked

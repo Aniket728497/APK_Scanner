@@ -62,12 +62,14 @@ def check():
 
     vt_result = check_url(url)
 
-    # Run typosquatting detection
     typo_result = check_website(url, trusted_domains)
 
-    # If typosquatting detects NOT TRUSTED → override status
-    if "NOT TRUSTED" in typo_result:
+    # If typosquatting detected → override status
+    if typo_result["is_duplicate"]:
         vt_result["status"] = "dangerous"
+        vt_result["duplicate_of"] = typo_result["matched_domain"]
+    else:
+        vt_result["duplicate_of"] = None
 
     return jsonify(vt_result)
 

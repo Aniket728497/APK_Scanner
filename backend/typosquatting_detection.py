@@ -49,9 +49,15 @@ def check_website(url, trusted_domains):
 
     # ✅ Final Decision
     if risk_score >= 5:
-        return f"⚠️ NOT TRUSTED (Possible impersonation of {best_match})"
+        return {
+            "is_duplicate": True,
+            "matched_domain": best_match
+        }
     else:
-        return "✅ TRUSTED"
+        return {
+            "is_duplicate": False,
+            "matched_domain": None
+        }
 
 
 # Run
