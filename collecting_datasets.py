@@ -1,47 +1,36 @@
 import requests
-import numpy as np
-import pandas as pd
 
-API_KEY = "e9b917b846efe746575400bc55c3b34524011d605a61f9161470fcf960611ea0"
-headers = {"x-apikey": API_KEY}
+# Predefined list of safe app download websites
+safe_sites = [
+    "https://play.google.com",
+    "https://apps.apple.com",
+    "https://www.microsoft.com/store",
+    "https://f-droid.org",
+    "https://www.amazon.com/appstore",
+    "https://www.ninite.com",
+    "https://filehippo.com",
+    "https://www.techspot.com/downloads/",
+    "https://www.majorgeeks.com",
+    "https://filehorse.com",
+    "https://softonic.com",
+    "https://sourceforge.net",
+    "https://download.cnet.com",
+    "https://apkmirror.com",
+    "https://apkpure.com",
+    "https://uptodown.com",
+    "https://getintopc.com",
+    "https://portableapps.com",
+    "https://snapcraft.io",
+    "https://flathub.org",
+    # … you can keep extending this list
+]
 
-# Example list of URLs to scan
-with open("urls.txt") as f:
-    urls = [line.strip() for line in f if line.strip()]
+# To reach 100+, you can duplicate categories or pull from feeds
+# Example: fetch Alexa/Tranco top sites and filter for app/software keywords
 
+# Save to txt file
+with open("app_download_sites.txt", "w") as f:
+    for site in safe_sites:
+        f.write(site + "\n")
 
-data = []
-
-for url in urls:
-    # Step 1: Submit URL to VirusTotal
-    scan_url = "https://www.virustotal.com/api/v3/urls"
-    response = requests.post(scan_url, headers=headers, data={"url": url})
-    if response.status_code != 200:
-        print(f"Error scanning {url}: {response.text}")
-        continue
-
-    url_id = response.json()["data"]["id"]
-
-    # Step 2: Get analysis results
-    analysis_url = f"https://www.virustotal.com/api/v3/analyses/{url_id}"
-    result = requests.get(analysis_url, headers=headers).json()
-    stats = result["data"]["attributes"]["stats"]
-
-    malicious = stats.get("malicious", 0)
-    suspicious = stats.get("suspicious", 0)
-    harmless = stats.get("harmless", 0)
-    url_length = len(url)
-
-    # Step 3: Label (simple rule: >3 malicious = unsafe)
-    label = 1 if malicious > 3 else 0
-
-    data.append([malicious, suspicious, harmless, url_length, label])
-
-# Step 4: Save dataset
-df = pd.DataFrame(data, columns=["malicious", "suspicious", "harmless", "url_length", "label"])
-
-# Append mode: 'a' = append, header=False prevents writing column names again
-df.to_csv("url_dataset.csv", mode="a", header=False, index=False)
-
-
-print("Dataset saved as url_dataset.csv")
+print(f"Saved {len(safe_sites)} app download websites to app_download_sites.txt")
