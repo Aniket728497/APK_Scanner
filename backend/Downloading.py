@@ -1,34 +1,67 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 import requests
 
 app = Flask(__name__)
+CORS(app)  # Required so the Chrome extension (different origin) can call this
 
-API_KEY = "e9b917b846efe746575400bc55c3b34524011d605a61f9161470fcf960611ea0"  # Replace with your actual VirusTotal key
-url = "https://github.com/AmruthaHavale"
+API_KEY = "e9b917b846efe746575400bc55c3b34524011d605a61f9161470fcf960611ea0"
+
 def check_url(url):
-    scan_url = "https://www.virustotal.com/api/v3/urls"
+    """Submit a URL to VirusTotal and return a structured safety result."""
+    scan_endpoint = "https://www.virustotal.com/api/v3/urls"
     headers = {"x-apikey": API_KEY}
-    response = requests.post(scan_url, headers=headers, data={"url": url})
 
-    if response.status_code == 200:
-        url_id = response.json()["data"]["id"]
-        analysis_url = f"https://www.virustotal.com/api/v3/analyses/{url_id}"
-        result = requests.get(analysis_url, headers=headers).json()
-        stats = result["data"]["attributes"]["stats"]
-        malicious = stats.get("malicious", 0)
+    # Step 1: Submit the URL for scanning
+    submit = requests.post(scan_endpoint, headers=headers, data={"url": url})
+    if submit.status_code != 200:
+        return {
+            "status": "error",
+            "message": f"VirusTotal submission failed: {submit.text}"
+        }
 
-        if malicious > 3:
-            return f"⚠️ WARNING: {url} is unsafe! ({malicious} engines flagged it)"
-        else:
-            return f"✅ {url} is safe. ({malicious} minor flags ignored)"
+    # Step 2: Fetch the analysis result using the returned ID
+    url_id = submit.json()["data"]["id"]
+    analysis = requests.get(
+        f"https://www.virustotal.com/api/v3/analyses/{url_id}",
+        headers=headers
+    ).json()
+
+    stats = analysis["data"]["attributes"]["stats"]
+    malicious = stats.get("malicious", 0)
+    suspicious = stats.get("suspicious", 0)
+
+    # Step 3: Map counts to a simple three-tier status
+    if malicious > 3:
+        status = "dangerous"
+    elif malicious > 0 or suspicious > 0:
+        status = "warning"
     else:
-        return f"Error submitting URL: {response.text}"
+        status = "safe"
 
-@app.route("/", methods=["GET"])
-def home():
+    return {
+        "status": status,
+        "malicious": malicious,
+        "suspicious": suspicious,
+        "harmless": stats.get("harmless", 0),
+        "undetected": stats.get("undetected", 0)
+    }
+
+
+@app.route("/check", methods=["GET"])
+def check():
+    """
+    GET /check?url=https://example.com
+    Returns JSON: { status, malicious, suspicious, harmless, undetected }
+    """
+    url = request.args.get("url")
     if not url:
-        return "Please provide a URL using ?url=<your_url>"
-    return check_url(url)
+        return jsonify({"status": "error", "message": "Missing ?url= parameter"}), 400
+
+    result = check_url(url)
+    return jsonify(result)
+
 
 if __name__ == "__main__":
+    # Run on port 5000 by default; extension calls http://localhost:5000/check
     app.run(debug=True)
