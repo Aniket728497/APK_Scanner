@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Safety Checker</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="logo-wrap">
+                <svg class="logo" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+                          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <h1>Safety Check</h1>
+            <span class="header-badge">v1.0</span>
+        </div>
+
+        <!-- Status Container -->
+        <div class="status-container">
+
+            <!-- Checking State -->
+            <div class="status-card checking" id="checkingState">
+                <div class="pulse-ring">
+                    <div class="spinner-circle"></div>
+                </div>
+                <h2>Analyzing…</h2>
+                <p>Scanning website security</p>
+            </div>
+
+            <!-- Safe State -->
+            <div class="status-card safe hidden" id="safeState">
+                <div class="status-icon-wrap">
+                    <div class="status-icon safe-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                </div>
+                <h2>Safe to Visit</h2>
+                <p class="domain" id="safeDomain">example.com</p>
+                <div class="details">
+                    <div class="detail-item">
+                        <span class="check-icon">✓</span>
+                        <span>No threats detected</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="check-icon">✓</span>
+                        <span>Secure connection</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="check-icon">✓</span>
+                        <span>Trusted domain</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="visitWebsite()">Continue to Site</button>
+            </div>
+
+            <!-- Warning State -->
+            <div class="status-card warning hidden" id="warningState">
+                <div class="status-icon-wrap">
+                    <div class="status-icon warning-icon">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+                        </svg>
+                    </div>
+                </div>
+                <h2>Use Caution</h2>
+                <p class="domain" id="warningDomain">example.com</p>
+                <div class="details">
+                    <div class="detail-item warning-item">
+                        <span class="warn-icon">!</span>
+                        <span>Potential security issues detected</span>
+                    </div>
+                    <div class="detail-item warning-item">
+                        <span class="warn-icon">!</span>
+                        <span>Verify site authenticity</span>
+                    </div>
+                </div>
+                <button class="btn btn-warning" onclick="visitWebsite()">Proceed Anyway</button>
+                <button class="btn btn-secondary" onclick="goBack()">Go Back</button>
+            </div>
+
+            <!-- Dangerous State -->
+            <div class="status-card dangerous hidden" id="dangerousState">
+                <div class="status-icon-wrap">
+                    <div class="status-icon danger-icon">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 6.4L17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12 19 6.4z"/>
+                        </svg>
+                    </div>
+                </div>
+                <h2>Dangerous</h2>
+                <p class="domain" id="dangerousDomain">example.com</p>
+                <div class="details">
+                    <div class="detail-item danger-item">
+                        <span class="danger-icon">✕</span>
+                        <span>Known malware/phishing threats</span>
+                    </div>
+                    <div class="detail-item danger-item">
+                        <span class="danger-icon">✕</span>
+                        <span>Unsafe to visit</span>
+                    </div>
+                </div>
+                <button class="btn btn-danger" onclick="goBack()">Go Back Now</button>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-dot"></div>
+            <small>Last checked: <span id="timestamp">just now</span></small>
+        </div>
+
+    </div>
+    <script src="popup.js"></script>
+</body>
+</html>

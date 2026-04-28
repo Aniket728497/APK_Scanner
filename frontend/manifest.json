@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Website Safety Checker",
+  "version": "1.0.0",
+  "description": "Instantly check if the website you're visiting is safe",
+  "permissions": [
+    "activeTab",
+    "tabs"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Check website safety"
+  }
+}
