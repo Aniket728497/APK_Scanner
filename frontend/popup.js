@@ -1,13 +1,11 @@
 const BACKEND_URL = "http://localhost:5000/check";
 
-// Get the full URL of the active tab and kick off a safety check
+// Get current tab
 function getCurrentTabUrl(callback) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         const tab = tabs[0];
-        if (!tab || !tab.url) {
-            callback(null, null);
-            return;
-        }
+        if (!tab || !tab.url) return callback(null, null);
+
         try {
             const parsed = new URL(tab.url);
             const domain = parsed.hostname.replace(/^www\./, "");
@@ -18,70 +16,38 @@ function getCurrentTabUrl(callback) {
     });
 }
 
-// Call the Flask backend and return the safety result
+// Backend call
 async function checkWebsiteSafety(fullUrl) {
-    const response = await fetch(
-        `${BACKEND_URL}?url=${encodeURIComponent(fullUrl)}`,
-        { method: "GET" }
-    );
-    if (!response.ok) {
-        throw new Error(`Backend returned ${response.status}`);
-    }
-    return response.json(); // { status, malicious, suspicious, harmless, undetected }
+    const res = await fetch(`${BACKEND_URL}?url=${encodeURIComponent(fullUrl)}`);
+    if (!res.ok) throw new Error("Backend error");
+    return res.json();
 }
 
-// Populate and reveal the right status card
+// UI update
 function displayStatus(status, domain, stats = {}) {
     document.getElementById("checkingState").classList.add("hidden");
 
     if (status === "safe") {
-        const card = document.getElementById("safeState");
+        document.getElementById("safeState").classList.remove("hidden");
         document.getElementById("safeDomain").textContent = domain;
-        // Enrich the detail rows with real numbers if available
-        const items = card.querySelectorAll(".detail-item span:last-child");
-        if (items[0]) items[0].textContent = "No threats detected";
-        if (items[1]) items[1].textContent = "Secure connection verified";
-        if (items[2]) items[2].textContent =
-            stats.harmless != null
-                ? `${stats.harmless} engines confirm safe`
-                : "Trusted domain";
-        card.classList.remove("hidden");
 
     } else if (status === "warning") {
-        const card = document.getElementById("warningState");
+        document.getElementById("warningState").classList.remove("hidden");
         document.getElementById("warningDomain").textContent = domain;
-        const items = card.querySelectorAll(".detail-item span:last-child");
-        if (items[0]) items[0].textContent =
-            `${stats.suspicious ?? 0} engine(s) flagged as suspicious`;
-        if (items[1]) items[1].textContent = "Verify site authenticity before proceeding";
-        card.classList.remove("hidden");
 
     } else if (status === "dangerous") {
-        const card = document.getElementById("dangerousState");
+        document.getElementById("dangerousState").classList.remove("hidden");
         document.getElementById("dangerousDomain").textContent = domain;
-        const items = card.querySelectorAll(".detail-item span:last-child");
-        if (items[0]) items[0].textContent =
-            `${stats.malicious ?? "Multiple"} engine(s) flagged as malicious`;
-        if (items[1]) items[1].textContent = "Do not enter credentials or personal data";
-        card.classList.remove("hidden");
-        const duplicateBox = document.getElementById("duplicateWarning");
-        const duplicateText = document.getElementById("duplicateText");
+
+        const box = document.getElementById("duplicateWarning");
+        const text = document.getElementById("duplicateText");
 
         if (stats.duplicate_of) {
-            duplicateText.textContent = `This website is a duplicate of ${stats.duplicate_of}`;
-            duplicateBox.classList.remove("hidden");
+            text.textContent = `This website is a duplicate of ${stats.duplicate_of}`;
+            box.classList.remove("hidden");
         } else {
-            duplicateBox.classList.add("hidden");
+            box.classList.add("hidden");
         }
-
-    } else {
-        // Fallback: treat errors as warning so the user isn't blocked
-        document.getElementById("warningDomain").textContent = domain;
-        const card = document.getElementById("warningState");
-        const items = card.querySelectorAll(".detail-item span:last-child");
-        if (items[0]) items[0].textContent = "Could not reach safety service";
-        if (items[1]) items[1].textContent = "Proceed with caution";
-        card.classList.remove("hidden");
     }
 
     updateTimestamp();
@@ -89,37 +55,72 @@ function displayStatus(status, domain, stats = {}) {
 
 function updateTimestamp() {
     const now = new Date();
-    const hh = String(now.getHours()).padStart(2, "0");
-    const mm = String(now.getMinutes()).padStart(2, "0");
-    document.getElementById("timestamp").textContent = `${hh}:${mm}`;
+    document.getElementById("timestamp").textContent =
+        `${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")}`;
 }
 
 function visitWebsite() {
-    window.close();
-}
-
-function goBack() {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        chrome.tabs.update(tabs[0].id, { url: "about:blank" });
-        window.close();
+        chrome.tabs.update(tabs[0].id, { active: true }, () => {
+            window.close();
+        });
     });
 }
 
-// ── Entry point ───────────────────────────────────
+// ✅ FIXED GO BACK (WORKING VERSION)
+function goBack() {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const tab = tabs[0];
+
+        // Try native back first
+        chrome.tabs.goBack(tab.id, () => {
+            if (!chrome.runtime.lastError) {
+                window.close();
+                return;
+            }
+
+            // Fallback 1: inject history.back()
+            chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                func: () => {
+                    if (window.history.length > 1) {
+                        window.history.back();
+                        return true;
+                    }
+                    return false;
+                }
+            }, (results) => {
+                const success = results?.[0]?.result;
+
+                if (success) {
+                    window.close();
+                } else {
+                    // Fallback 2: manual fallback (go to Google or safe page)
+                    chrome.tabs.update(tab.id, {
+                        url: "https://www.google.com"
+                    }, () => {
+                        window.close();
+                    });
+                }
+            });
+        });
+    });
+}
+
+// init
 document.addEventListener("DOMContentLoaded", () => {
-    getCurrentTabUrl(async (fullUrl, domain) => {
-        if (!fullUrl || !domain) {
-            displayStatus("safe", "unknown site");
-            return;
-        }
+    document.getElementById("visitBtn")?.addEventListener("click", visitWebsite);
+    document.getElementById("backBtn")?.addEventListener("click", goBack);
+
+    getCurrentTabUrl(async (url, domain) => {
+        if (!url) return displayStatus("safe", "unknown");
 
         try {
-            const result = await checkWebsiteSafety(fullUrl);
+            const result = await checkWebsiteSafety(url);
             displayStatus(result.status, domain, result);
-        } catch (err) {
-            console.error("Safety check failed:", err);
-            // Show warning (not safe) so the user is aware something went wrong
-            displayStatus("error", domain);
+        } catch (e) {
+            console.error(e);
+            displayStatus("warning", domain);
         }
     });
 });

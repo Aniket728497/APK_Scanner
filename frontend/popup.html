@@ -44,6 +44,7 @@
                 </div>
                 <h2>Safe to Visit</h2>
                 <p class="domain" id="safeDomain">example.com</p>
+
                 <div class="details">
                     <div class="detail-item">
                         <span class="check-icon">✓</span>
@@ -58,7 +59,8 @@
                         <span>Trusted domain</span>
                     </div>
                 </div>
-                <button class="btn btn-primary" onclick="visitWebsite()">Continue to Site</button>
+
+                <button class="btn btn-primary" id="visitBtn">Continue to Site</button>
             </div>
 
             <!-- Warning State -->
@@ -70,8 +72,10 @@
                         </svg>
                     </div>
                 </div>
+
                 <h2>Use Caution</h2>
                 <p class="domain" id="warningDomain">example.com</p>
+
                 <div class="details">
                     <div class="detail-item warning-item">
                         <span class="warn-icon">!</span>
@@ -82,8 +86,9 @@
                         <span>Verify site authenticity</span>
                     </div>
                 </div>
-                <button class="btn btn-warning" onclick="visitWebsite()">Proceed Anyway</button>
-                <button class="btn btn-secondary" onclick="goBack()">Go Back</button>
+
+                <button class="btn btn-warning" id="visitBtn">Continue to Site</button>
+                <button class="btn btn-secondary" id="backBtn">Go Back</button>
             </div>
 
             <!-- Dangerous State -->
@@ -95,19 +100,23 @@
                         </svg>
                     </div>
                 </div>
+
                 <h2>Dangerous</h2>
                 <p class="domain" id="dangerousDomain">example.com</p>
+
                 <div class="details">
                     <div class="detail-item danger-item hidden" id="duplicateWarning">
-                    <span class="danger-icon">!</span>
-                    <span id="duplicateText"></span>
-                </div>
+                        <span class="danger-icon">!</span>
+                        <span id="duplicateText"></span>
+                    </div>
+
                     <div class="detail-item danger-item">
                         <span class="danger-icon">✕</span>
                         <span>Unsafe to visit</span>
                     </div>
                 </div>
-                <button class="btn btn-danger" onclick="goBack()">Go Back Now</button>
+
+                <button class="btn btn-danger" id="backBtn">Go Back Now</button>
             </div>
 
         </div>
@@ -119,6 +128,7 @@
         </div>
 
     </div>
+
     <script src="popup.js"></script>
 </body>
 </html>
