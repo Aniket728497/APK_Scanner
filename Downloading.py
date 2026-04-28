@@ -4,7 +4,7 @@ import requests
 app = Flask(__name__)
 
 API_KEY = "e9b917b846efe746575400bc55c3b34524011d605a61f9161470fcf960611ea0"  # Replace with your actual VirusTotal key
-url = "https://github.com/AmruthaHavale"
+url = "https://globlpage-desktop.wixstudio.com/us-en"
 def check_url(url):
     scan_url = "https://www.virustotal.com/api/v3/urls"
     headers = {"x-apikey": API_KEY}
