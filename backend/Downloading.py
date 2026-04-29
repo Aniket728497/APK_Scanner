@@ -10,7 +10,7 @@ app = Flask(__name__)
 CORS(app)
 
 API_KEY = "e9b917b846efe746575400bc55c3b34524011d605a61f9161470fcf960611ea0"
-trusted_domains = load_trusted_domains("top_5_websites.txt")
+trusted_domains = load_trusted_domains("website_list.txt")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
