@@ -62,7 +62,7 @@ def check_website(url, trusted_domains):
 
 # Run
 if __name__ == "__main__":
-    trusted_domains = load_trusted_domains("top_5_websites.txt")
+    trusted_domains = load_trusted_domains("website_list.txt")
 
     url = input("Enter URL: ")
     print(check_website(url, trusted_domains))
