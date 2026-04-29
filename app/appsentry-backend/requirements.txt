@@ -1,0 +1,4 @@
+flask==3.0.2
+requests==2.31.0
+google-play-scraper==1.2.4
+beautifulsoup4==4.12.3
